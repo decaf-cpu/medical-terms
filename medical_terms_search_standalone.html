@@ -4,184 +4,300 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>의학용어 검색</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root{
+            --bg:#f6f7f9;
+            --card:#ffffff;
+            --text:#111827;
+            --muted:#6b7280;
+            --border:#e5e7eb;
+            --accent:#2563eb;
+            --accent-soft:#eff6ff;
+            --shadow:0 4px 18px rgba(0,0,0,0.06);
+            --radius:14px;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+        
+
+        html[data-theme="dark"]{
+            --bg:#0b1220;
+            --card:#0f172a;
+            --text:#e5e7eb;
+            --muted:#9ca3af;
+            --border:rgba(255,255,255,0.12);
+            --accent:#60a5fa;
+            --accent-soft:rgba(96,165,250,0.12);
+            --shadow:0 8px 28px rgba(0,0,0,0.38);
+        }
+    
+*{ margin:0; padding:0; box-sizing:border-box; }
+
+        body{
+            font-family:'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Malgun Gothic', sans-serif;
+            background:var(--bg);
+            color:var(--text);
+            min-height:100vh;
+            padding:24px;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
+        .container{ max-width:920px; margin:0 auto; }
+
+        .header{
+            position: relative;
+text-align:center;
+            color:var(--text);
+            margin: 18px 0 16px;
+            padding-top: 8px;
         }
 
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 40px;
-            padding-top: 40px;
-        }
-
-        .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
+        .header h1{
+            font-size: 1.75rem;
+            margin-bottom: 6px;
             font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+        .header p{
+            font-size: 1.02rem;
+            color: var(--muted);
+            opacity: 1;
         }
 
-        .version-info {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.85em;
+        .version-info{
+            text-align:center;
+            color: var(--muted);
+            font-size: 0.85rem;
             margin-top: 10px;
         }
 
-        .search-box {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            margin-bottom: 30px;
+        .search-box,
+        .results{
+            background: var(--card);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
         }
 
-        .search-input-wrapper {
+        .search-box{
+            padding: 22px;
+            margin-bottom: 14px;
+        }
+
+        .search-input-wrapper{
             position: relative;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        #searchInput {
+        #searchInput{
             width: 100%;
-            padding: 18px 50px 18px 20px;
-            font-size: 1.1em;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 14px 46px 14px 16px;
+            font-size: 1.05rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
             outline: none;
-            transition: border-color 0.3s;
+            background: var(--card);
+            color: var(--text);
+            transition: border-color .2s, box-shadow .2s;
         }
 
-        #searchInput:focus {
-            border-color: #667eea;
+        #searchInput:focus{
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
         }
 
-        .search-icon {
+        .search-icon{
             position: absolute;
-            right: 20px;
+            right: 16px;
             top: 50%;
             transform: translateY(-50%);
-            color: #999;
-            font-size: 1.3em;
+            color: var(--muted);
+            font-size: 1.15em;
+            user-select: none;
         }
 
-        .stats {
+        .stats{
             display: flex;
             justify-content: space-between;
-            color: #666;
-            font-size: 0.95em;
+            color: var(--muted);
+            font-size: 0.92rem;
+            gap: 12px;
         }
 
-        .results {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-            max-height: 600px;
+        .results{
+            padding: 8px;
+            max-height: 640px;
             overflow-y: auto;
         }
 
-        .result-item {
-            padding: 20px;
-            border-bottom: 1px solid #f0f0f0;
-            transition: background-color 0.2s;
+        .result-item{
+            padding: 16px;
+            border-bottom: 1px solid var(--border);
+            transition: background-color .15s;
         }
 
-        .result-item:last-child {
-            border-bottom: none;
+        .result-item:last-child{ border-bottom: none; }
+
+        .result-item:hover{ background-color: var(--accent-soft); }
+
+        .result-term{
+            font-size: 1.08rem;
+            font-weight: 650;
+            color: var(--accent);
+            margin-bottom: 6px;
         }
 
-        .result-item:hover {
-            background-color: #f8f9ff;
-        }
-
-        .result-term {
-            font-size: 1.2em;
-            font-weight: 600;
-            color: #667eea;
-            margin-bottom: 8px;
-        }
-
-        .result-korean {
-            font-size: 1em;
-            color: #333;
+        .result-korean{
+            font-size: 0.98rem;
+            color: var(--text);
             line-height: 1.6;
         }
 
-        .no-results {
+        .no-results{
             text-align: center;
-            padding: 60px 20px;
-            color: #999;
+            padding: 56px 20px;
+            color: var(--muted);
         }
 
-        .no-results-icon {
-            font-size: 3em;
-            margin-bottom: 15px;
+        .no-results-icon:empty{display:none;}
+
+        .no-results-icon{
+            font-size: 2.5em;
+            margin-bottom: 12px;
         }
 
-        .highlight {
-            background-color: #fff3cd;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-weight: 500;
+        .highlight{
+            background: rgba(37,99,235,0.14);
+            padding: 1px 3px;
+            border-radius: 4px;
+            font-weight: 600;
         }
 
-        .results::-webkit-scrollbar {
-            width: 8px;
+        .results::-webkit-scrollbar{ width: 10px; }
+        .results::-webkit-scrollbar-track{ background: transparent; }
+        .results::-webkit-scrollbar-thumb{
+            background: rgba(17,24,39,0.18);
+            border-radius: 999px;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+        .results::-webkit-scrollbar-thumb:hover{
+            background: rgba(17,24,39,0.28);
+            border: 3px solid transparent;
+            background-clip: padding-box;
         }
 
-        .results::-webkit-scrollbar-track {
-            background: #f1f1f1;
+        @media (max-width: 600px){
+            body{ padding: 16px; }
+            .header h1{ font-size: 1.8rem; }
+            .search-box{ padding: 18px; }
+            .result-item{ padding: 14px; }
+            .stats{ flex-direction: column; align-items: flex-start; }
+        }
+    
+
+        #searchInput::placeholder{ color: rgba(107,114,128,0.9); }
+
+        .icon-btn{
+            display:inline-flex;
+            align-items:center;
+            justify-content:center;
+            width:38px;
+            height:38px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--muted);
+            cursor: pointer;
+            transition: transform .12s, background-color .12s, border-color .12s, color .12s;
+        }
+        .icon-btn:hover{
+            background: var(--accent-soft);
+            border-color: rgba(37,99,235,0.25);
+            color: var(--accent);
+            transform: translateY(-1px);
+        }
+        .icon-btn:active{ transform: translateY(0px); }
+        .icon-btn:focus{
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
+        }
+
+        .theme-toggle{
+            position:absolute;
+            right:0;
+            top:0;
+        }
+        .theme-toggle .icon-sun{ display:none; }
+        html[data-theme="dark"] .theme-toggle .icon-moon{ display:none; }
+        html[data-theme="dark"] .theme-toggle .icon-sun{ display:block; }
+    
+        .result-top{
+            display:flex;
+            align-items:flex-start;
+            justify-content:space-between;
+            gap: 12px;
+        }
+        .copy-btn{
+            flex: 0 0 auto;
+            width: 34px;
+            height: 34px;
             border-radius: 10px;
+            border: 1px solid var(--border);
+            background: var(--card);
+            color: var(--muted);
+            cursor: pointer;
+            transition: background-color .12s, border-color .12s, color .12s, transform .12s;
         }
-
-        .results::-webkit-scrollbar-thumb {
-            background: #667eea;
-            border-radius: 10px;
+        .copy-btn:hover{
+            background: var(--accent-soft);
+            border-color: rgba(37,99,235,0.25);
+            color: var(--accent);
+            transform: translateY(-1px);
         }
-
-        .results::-webkit-scrollbar-thumb:hover {
-            background: #5568d3;
+        .copy-btn:active{ transform: translateY(0px); }
+        .copy-btn:focus{
+            outline:none;
+            box-shadow: 0 0 0 4px rgba(37,99,235,0.15);
         }
-
-        @media (max-width: 600px) {
-            .header h1 {
-                font-size: 2em;
-            }
-            
-            .search-box {
-                padding: 20px;
-            }
-
-            .result-item {
-                padding: 15px;
-            }
+        .copy-btn svg{ display:block; margin: 0 auto; }
+        html[data-theme="dark"] #searchInput::placeholder{ color: rgba(156,163,175,0.9); }
+    
+        #toast{
+            position: fixed;
+            left: 50%;
+            bottom: 18px;
+            transform: translateX(-50%);
+            background: var(--card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 10px 14px;
+            border-radius: 999px;
+            box-shadow: var(--shadow);
+            font-size: 0.92rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .18s ease, transform .18s ease;
+            z-index: 9999;
+        }
+        #toast.show{
+            opacity: 1;
+            transform: translateX(-50%) translateY(-4px);
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🏥 의학용어 검색</h1>
+                        <button id="themeToggle" class="icon-btn theme-toggle" type="button" aria-label="다크모드 전환" title="다크모드 전환">
+                <svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                    <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z" fill="currentColor"/>
+                </svg>
+                <svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                    <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0-16v2m0 16v2m10-10h-2M4 12H2m15.07-7.07-1.41 1.41M8.34 15.66l-1.41 1.41m10.14 0-1.41-1.41M8.34 8.34 6.93 6.93" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </button>
+<h1> 의학용어 검색</h1>
             <p>용어 또는 뜻풀이로 검색하세요 (대소문자 구분 없음)</p>
             <div class="version-info">
                 데이터 버전: clean3 | 업데이트: 2026년 01월 30일
@@ -196,7 +312,7 @@
                     placeholder="예: abdominal, FEVER, 복부, 열..."
                     autofocus
                 >
-                <span class="search-icon">🔍</span>
+                <span class="search-icon"></span>
             </div>
             <div class="stats">
                 <span id="totalCount">총 50,746개 용어</span>
@@ -206,7 +322,7 @@
 
         <div class="results" id="results">
             <div class="no-results">
-                <div class="no-results-icon">👋</div>
+                <div class="no-results-icon"></div>
                 <div>검색어를 입력해주세요</div>
             </div>
         </div>
@@ -223,7 +339,84 @@
             return text.replace(regex, '<span class="highlight">$1</span>');
         }
 
-        function performSearch(query) {
+        
+        let currentDisplayItems = [];
+
+        function ensureToast() {
+            if (document.getElementById('toast')) return;
+            const t = document.createElement('div');
+            t.id = 'toast';
+            t.textContent = '';
+            document.body.appendChild(t);
+        }
+
+        function showToast(message) {
+            ensureToast();
+            const t = document.getElementById('toast');
+            t.textContent = message;
+            t.classList.add('show');
+            clearTimeout(showToast._timer);
+            showToast._timer = setTimeout(() => t.classList.remove('show'), 1100);
+        }
+
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) {
+                // Fallback for older browsers / non-secure contexts
+                try {
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.setAttribute('readonly', '');
+                    ta.style.position = 'fixed';
+                    ta.style.opacity = '0';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    const ok = document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    return ok;
+                } catch (e2) {
+                    return false;
+                }
+            }
+        }
+
+        function bindCopyButtons() {
+            document.querySelectorAll('.copy-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    const idx = Number(btn.getAttribute('data-idx'));
+                    const item = currentDisplayItems[idx];
+                    if (!item) return;
+                    const payload = `${item.korean}(${item.term})`;
+                    const ok = await copyToClipboard(payload);
+                    showToast(ok ? '복사됨' : '복사 실패');
+                };
+            });
+        }
+
+        function initTheme() {
+            const stored = localStorage.getItem('theme');
+            const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            const theme = stored ? stored : (prefersDark ? 'dark' : 'light');
+            if (theme === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            else document.documentElement.removeAttribute('data-theme');
+        }
+
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                showToast('라이트 모드');
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                showToast('다크 모드');
+            }
+        }
+
+    function performSearch(query) {
             if (!query.trim()) {
                 displayResults(termsData.slice(0, 50));
                 document.getElementById('resultCount').textContent = '';
@@ -249,7 +442,7 @@
             if (results.length === 0) {
                 resultsDiv.innerHTML = `
                     <div class="no-results">
-                        <div class="no-results-icon">🔍</div>
+                        <div class="no-results-icon"></div>
                         <div>검색 결과가 없습니다</div>
                     </div>
                 `;
@@ -258,16 +451,28 @@
 
             const displayItems = results.slice(0, 200);
             
-            resultsDiv.innerHTML = displayItems.map(item => `
+            currentDisplayItems = displayItems;
+
+            resultsDiv.innerHTML = displayItems.map((item, idx) => `
                 <div class="result-item">
-                    <div class="result-term">${highlightText(item.term, query)}</div>
+                    <div class="result-top">
+                        <div class="result-term">${highlightText(item.term, query)}</div>
+                        <button class="copy-btn" type="button" data-idx="${idx}" aria-label="뜻풀이 복사" title="뜻풀이 복사">
+                            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                                <path d="M8 7a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2V7Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                                <path d="M6 17H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </button>
+                    </div>
                     <div class="result-korean">${highlightText(item.korean, query)}</div>
                 </div>
             `).join('');
 
+            bindCopyButtons();
+
             if (results.length > 200) {
                 resultsDiv.innerHTML += `
-                    <div style="text-align: center; padding: 20px; color: #999; font-size: 0.9em;">
+                    <div style="text-align: center; padding: 20px; color: var(--muted); font-size: 0.9em;">
                         결과가 너무 많아 상위 200개만 표시됩니다. 더 구체적인 검색어를 입력해주세요.
                     </div>
                 `;
@@ -282,6 +487,12 @@
         });
 
         displayResults(termsData.slice(0, 50));
+    
+        document.addEventListener('DOMContentLoaded', function() {
+            initTheme();
+            const themeBtn = document.getElementById('themeToggle');
+            if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+        });
     </script>
 </body>
 </html>
