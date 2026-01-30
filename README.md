@@ -4,7 +4,7 @@
 
 ## 🔗 바로 사용하기
 
-👉 **[의학용어 검색 시작하기](medical_terms_search_standalone.html)**
+👉 **[의학용어 검색 시작하기](https://decaf-cpu.github.io/medical-terms/medical_terms_search_standalone.html)**
 
 ## 📊 데이터 정보
 
