@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'sha256-PkAFjF5AODSgaW0WrLxhmrYQt/ETg/oMaPLqyS7+yHQ='; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; script-src 'self' 'sha256-L4QhEL5lPYKjYhJUzAttoQRc7JC42FDiCEnKeNxGWbg='; connect-src 'self';"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'sha256-y7UrdJBc4UkbwzOYpTvBXT+Mh+2/CxdqJ2pMFZbZ53A='; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; script-src 'self' 'sha256-xnaY/logRZ0fftGHq81IvKjx1CZcKeLb2QGCBvwuXog='; connect-src 'self';"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>의학용어 검색</title>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-gov.min.css" / crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -121,13 +121,36 @@ text-align:center;
 
         .search-icon{
             position: absolute;
-            right: 16px;
+            right: 10px;
             top: 50%;
             transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background: transparent;
             color: var(--meta);
-            font-size: 1.15em;
+            cursor: pointer;
             user-select: none;
+            transition: background-color .12s, border-color .12s, color .12s, transform .12s;
         }
+        .search-icon:hover{
+            background: var(--primary-soft);
+            border-color: rgba(37,99,235,0.22);
+            color: var(--primary-50);
+            transform: translateY(-50%) translateY(-1px);
+        }
+        .search-icon:active{
+            transform: translateY(-50%);
+        }
+        .search-icon:focus{
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(36,107,235,0.18);
+        }
+        .search-icon svg{ display:block; }
 
         .stats{
             display: flex;
@@ -335,9 +358,9 @@ text-align:center;
                 </svg>
             </button>
 <h1> 의학용어 검색</h1>
-            <p>용어 또는 뜻풀이로 검색하세요 (대소문자 구분 없음)</p>
+            <p>용어 또는 뜻풀이로 검색하세요. 대소문자를 구분하지 않습니다.</p>
             <div class="version-info">
-                데이터 버전: clean3 | 업데이트: 2026년 01월 30일
+                업데이트: 2026년 01월 31일
             </div>
         </div>
 
@@ -346,10 +369,10 @@ text-align:center;
                 <input 
                     type="text" 
                     id="searchInput" 
-                    placeholder="예: abdominal, FEVER, 복부, 열..."
+                    placeholder="검색어를 입력해 주세요."
                     autofocus
                 >
-                <span class="search-icon"></span>
+                <button id="searchBtn" class="search-icon" type="button" aria-label="검색" title="검색"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
             </div>
             <div class="stats">
                 <span id="totalCount">총 50,746개 용어</span>
@@ -541,7 +564,7 @@ if (!query.trim()) {
         icon.className = 'no-results-icon';
 
         const msg = document.createElement('div');
-        msg.textContent = '검색 결과가 없습니다';
+        msg.textContent = '검색 결과가 없습니다. 철자나 맞춤법 오류가 있는지 확인해 주세요.';
 
         wrap.appendChild(icon);
         wrap.appendChild(msg);
@@ -631,6 +654,15 @@ if (!query.trim()) {
                 performSearch(e.target.value);
             }, 300);
         });
+
+        const searchBtn = document.getElementById('searchBtn');
+        if (searchBtn) {
+            searchBtn.addEventListener('click', () => {
+                const input = document.getElementById('searchInput');
+                performSearch(input.value);
+                input.focus();
+            });
+        }
 
         displayResults(termsData.slice(0, 50));
     
