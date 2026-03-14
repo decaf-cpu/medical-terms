@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'sha256-y7UrdJBc4UkbwzOYpTvBXT+Mh+2/CxdqJ2pMFZbZ53A='; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; script-src 'self' 'sha256-xnaY/logRZ0fftGHq81IvKjx1CZcKeLb2QGCBvwuXog='; connect-src 'self';"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com 'sha256-y7UrdJBc4UkbwzOYpTvBXT+Mh+2/CxdqJ2pMFZbZ53A='; font-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com data:; script-src 'self' 'sha256-OV6sQBKVW2fL6u1JuzHFl55EOJb08OclMdvlAPH4B40='; connect-src 'self';"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>의학용어 검색</title>
         <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-gov.min.css" / crossorigin="anonymous" referrerpolicy="no-referrer">
@@ -471,7 +471,22 @@ let currentDisplayItems = [];
                     if (Number.isNaN(idx)) return;
                     const item = currentDisplayItems[idx];
                     if (!item) return;
-                    const payload = `${item.korean}(${item.term})`;
+                    let payload;
+                    if (item.korean && item.korean.includes('[원]')) {
+                        const wIdx = item.korean.indexOf('[원]');
+                        const korPart = item.korean.slice(0, wIdx).trim();
+                        const engPart = item.korean.slice(wIdx + 3).trim();
+                        payload = `${korPart}(${engPart}, ${item.term})`;
+                    } else if (item.korean && item.korean.includes('[약]')) {
+                        const yakIdx = item.korean.indexOf('[약]');
+                        const korPart = item.korean.slice(0, yakIdx).trim();
+                        const afterYak = item.korean.slice(yakIdx + 3).trim();
+                        const abbrMatch = afterYak.match(/^([^()]+?)(?:\s*\(|$)/);
+                        const abbreviation = abbrMatch ? abbrMatch[1].trim() : afterYak;
+                        payload = `${korPart}(${item.term}, ${abbreviation})`;
+                    } else {
+                        payload = `${item.korean}(${item.term})`;
+                    }
                     const ok = await copyToClipboard(payload);
                     showToast(ok ? '복사됨' : '복사 실패');
                 };
