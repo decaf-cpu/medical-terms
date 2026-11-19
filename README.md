@@ -46,6 +46,8 @@ python scripts/crawl_kma.py           # 전체 크롤링 → data/sources/kma.cs
 python scripts/build_data.py          # → data/terms.json, reports/changes_날짜.csv
 ```
 
+더 빠른 방법: `python scripts/crawl_kma_fast.py` (a~z 첫 글자 목록으로 용어당 한 번만 받고, 6판 대비 빠진 용어는 재검색). 먼저 `--probe`로 사이트에서 되는지 확인합니다.
+
 자동 선택이 틀리면 `--type1 twdContent8 --type2 twdDong8`처럼 직접 지정합니다.
 
 ## 📁 구조
