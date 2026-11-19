@@ -79,6 +79,17 @@ def clean_text(x: str) -> str:
     return re.sub(r"\s+", " ", x).strip()
 
 
+def fix_highlight_artifacts(x: str) -> str:
+    """
+    의협 사이트는 검색어를 <font color='#FF0000'>…</font> 로 강조하는데, 검색어가 'f' 나 '0' 이면
+    자기 태그의 색상값(#FF0000) 안 글자까지 다시 치환해 태그가 깨짐 → 본문에 찌꺼기가 남음.
+      'f' 검색:  "FF0000'>fever"      → "fever"
+      '0' 검색:  "10000'>00000'>0 °F" → "100 °F",  "ED50000'>0" → "ED50"
+    (1월 데이터의 clean2→clean3 정리에서 제거됐던 오류 행들과 같은 원인)
+    """
+    return x.replace("FF0000'>", "").replace("0000'>0", "0")
+
+
 def text_preserve_no_forced_spaces(node) -> str:
     """
     BeautifulSoup.get_text(" ")는 노드 경계마다 공백을 강제 삽입함 → 하이라이트(font/b) 때문에
@@ -115,8 +126,8 @@ def parse_pairs_searchlist(page_html: str):
         dd = dt.find_next_sibling("dd")
         if not dd:
             continue
-        term = clean_text(text_preserve_no_forced_spaces(dt))
-        kor = clean_text(text_preserve_no_forced_spaces(dd))
+        term = fix_highlight_artifacts(clean_text(text_preserve_no_forced_spaces(dt)))
+        kor = fix_highlight_artifacts(clean_text(text_preserve_no_forced_spaces(dd)))
         if term and kor:
             pairs.append((term, kor))
     return pairs

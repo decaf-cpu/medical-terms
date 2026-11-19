@@ -1,9 +1,8 @@
 {
-  "edition": "6판",
-  "crawled": "2026-01-31",
+  "edition": "6.1판",
+  "crawled": "2026-11-19",
   "sch_type1": "twdContent7",
   "sch_type2": "twdDong7",
-  "type1_label": "",
-  "count": 50746,
-  "failed_queries": []
+  "type1_label": "6.1판",
+  "method": "spelling a-z (GET) + digits + recheck (crawl_kma_fast.py)"
 }

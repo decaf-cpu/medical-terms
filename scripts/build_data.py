@@ -29,7 +29,9 @@ ORDER = ["kma.csv", "prevmed.csv"]  # 이 순서로 먼저, 나머지는 이름�
 
 def clean_text(x: str) -> str:
     x = html.unescape(x)
-    return re.sub(r"\s+", " ", x).strip()
+    x = re.sub(r"\s+", " ", x).strip()
+    # 의협 사이트 강조 태그 깨짐 찌꺼기 제거 (crawl_kma.fix_highlight_artifacts 와 동일)
+    return x.replace("FF0000'>", "").replace("0000'>0", "0")
 
 
 def read_csv(path):
