@@ -185,6 +185,13 @@ def find_choices(page_html: str):
         for inp in soup.find_all("input", attrs={"name": name}):
             if inp.get("value"):
                 out[name].append((inp["value"], _label_for(inp, soup)))
+    # 실제 사이트: 왼쪽 메뉴 <a href="javascript:$.sch_type(7);">6.1판</a>
+    #             → JS 에서 "twdContent7/twdDong7" 로 매핑
+    for a in soup.find_all("a", href=re.compile(r"sch_type\(\s*\d+\s*\)")):
+        n = re.search(r"sch_type\(\s*(\d+)", a["href"]).group(1)
+        lab = clean_text(a.get_text())
+        out["sch_type1"].append((f"twdContent{n}", lab))
+        out["sch_type2"].append((f"twdDong{n}", lab))
     # 판 이름 후보 (페이지 텍스트에서)
     editions = sorted({re.sub(r"\s+", "", e) for e in
                        re.findall(r"제?\s*\d+(?:\.\d+)?\s*판", soup.get_text(" "))})
