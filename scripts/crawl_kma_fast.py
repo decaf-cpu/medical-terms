@@ -10,6 +10,14 @@
      빠진 게 없게 확인합니다.
   4) 요청은 동시에 몇 개씩(--workers, 기본 4) 보냅니다.
 
+빠짐 방지 장치 (이전 데이터가 없어도 동작하는 것 위주):
+  - 목록마다 사이트가 알려준 총 개수와 실제 받은 행 수를 비교, 모자라면 그 쪽만 다시 받음
+  - a~z 로 시작하지 않는 용어는 숫자·그리스 문자 포함 검색으로 따로 수집
+  - 무작위 3글자 '포함 검색'(--audit, 기본 60개)으로 목록 방식이 놓친 게 있는지 교차 확인
+  - 이전 데이터(로컬 kma.csv, 없으면 GitHub 의 현재 데이터)와 비교해 사라진 용어 재검색
+  - 전처리 후에도 태그 조각이 남은 행 경고
+  이상 징후는 마지막에 모아서 보여주고 kma.meta.json 의 problems 에도 남깁니다.
+
 사용법 (레포 루트에서):
     py scripts\\crawl_kma_fast.py --probe   # 알파벳 목록 방식이 되는지 확인만 (몇 초)
     py scripts\\crawl_kma_fast.py           # 전체 크롤링 → data/sources/kma.csv
@@ -109,30 +117,76 @@ class Mode:
         return False
 
 
-def crawl_listing(make_params, method, label, workers, log):
-    """1쪽으로 총 개수를 보고 나머지 쪽을 병렬로 받음"""
+class Problems:
+    """조용히 데이터가 빠지는 일이 없도록 이상 징후를 모아 마지막에 보고"""
+
+    def __init__(self):
+        self.items = []
+
+    def add(self, msg):
+        self.items.append(msg)
+        print(f"  ⚠️  {msg}", flush=True)
+
+
+def crawl_listing(make_params, method, label, workers, log, problems):
+    """1쪽으로 총 개수를 보고 나머지 쪽을 병렬로 받음. 받은 행 수가 총 개수와 다르면 그 쪽만 다시 받음."""
     h1 = fetch(make_params(1), method)
     total = base.extract_total_count(h1)
     p1 = base.parse_pairs_searchlist(h1)
     if not p1:
+        if total:
+            problems.add(f"{label}: 총 {total}개라는데 1쪽이 비어 있음")
         return []
-    pages = max(1, math.ceil(total / len(p1))) if total else 1
+    size = len(p1)
+    pages = max(1, math.ceil(total / size)) if total else 1
+
+    def get(p):
+        return base.parse_pairs_searchlist(fetch(make_params(p), method))
+
     results = {1: p1}
     if pages > 1:
         with ThreadPoolExecutor(max_workers=workers) as ex:
-            futs = {ex.submit(lambda p: base.parse_pairs_searchlist(fetch(make_params(p), method)), p): p
-                    for p in range(2, pages + 1)}
+            futs = {ex.submit(get, p): p for p in range(2, pages + 1)}
             done = 0
             for f in as_completed(futs):
-                results[futs[f]] = f.result()
+                p = futs[f]
+                try:
+                    results[p] = f.result()
+                except Exception as e:  # noqa: BLE001
+                    results[p] = None
+                    log(f"    {label} {p}쪽 실패: {e}")
                 done += 1
                 if done % 50 == 0:
                     log(f"    {label}: {done + 1}/{pages}쪽")
+
+    # 비었거나 덜 찬 쪽(마지막 쪽 제외)은 순서대로 한 번 더
+    for p in range(1, pages + 1):
+        expect = size if p < pages else total - size * (pages - 1)
+        if results.get(p) is None or len(results[p]) < expect:
+            try:
+                results[p] = get(p)
+            except Exception as e:  # noqa: BLE001
+                results[p] = results.get(p) or []
+                problems.add(f"{label} {p}쪽 재시도도 실패: {e}")
+
     out = []
     for p in sorted(results):
-        out.extend(results[p])
-    log(f"  {label}: 총 {total}개 예상, {pages}쪽, 받은 행 {len(out)}")
+        out.extend(results[p] or [])
+    msg = f"  {label}: 총 {total}개 예상, {pages}쪽, 받은 행 {len(out)}"
+    log(msg)
+    if total is not None and len(out) < total:
+        problems.add(f"{label}: {total - len(out)}개 덜 받음 (예상 {total}, 받음 {len(out)})")
     return out
+
+
+def leftover_markup(rows):
+    """전처리 후에도 태그 조각이 남은 행 (사이트가 강조 방식을 바꾸면 여기서 드러남)"""
+    bad = []
+    for t, k in rows:
+        s = t + " " + k
+        if "'>" in s or '">' in s or "<font" in s.lower() or "#ff0000" in s.lower():
+            bad.append((t, k))
+    return bad
 
 
 def main():
@@ -140,6 +194,10 @@ def main():
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--workers", type=int, default=4, help="동시 요청 수 (기본 4, 너무 올리지 마세요)")
     ap.add_argument("--edition", default=None)
+    ap.add_argument("--audit", type=int, default=60,
+                    help="교차 확인용 무작위 3글자 포함 검색 개수 (기본 60, 0이면 생략)")
+    ap.add_argument("--reference", default=None,
+                    help="비교 기준 CSV (기본: data/sources/kma.csv, 없으면 GitHub 의 현재 데이터)")
     args = ap.parse_args()
 
     os.makedirs(base.SRC_DIR, exist_ok=True)
@@ -162,6 +220,7 @@ def main():
         return 0
 
     started = time.time()
+    problems = Problems()
     seen, rows = set(), []
 
     def add(pairs):
@@ -173,33 +232,92 @@ def main():
                 n += 1
         return n
 
-    # 1) a~z 첫 글자 목록
+    # 1) a~z 목록
     for letter in string.ascii_lowercase:
         pairs = crawl_listing(lambda p, L=letter: mode.spelling(L, p), mode.method,
-                              f"'{letter}'", args.workers, log)
+                              f"'{letter}'", args.workers, log, problems)
         log(f"  → 새로 {add(pairs)}개, 누적 {len(seen):,}  ({time.time() - started:.0f}초)")
 
-    # 2) 숫자 포함 검색
-    for d in base.DIGITS:
-        pairs = crawl_listing(lambda p, q=d: mode.contains(q, p), "GET", f"숫자 '{d}'", args.workers, log)
-        log(f"  → 새로 {add(pairs)}개, 누적 {len(seen):,}")
+    # 2) a~z 로 시작하지 않는 용어: 숫자 + 그리스 문자 포함 검색
+    extra = base.DIGITS + list("αβγδεζηθικλμνξοπρστυφχψω")
+    for q in extra:
+        pairs = crawl_listing(lambda p, q=q: mode.contains(q, p), "GET", f"포함 '{q}'",
+                              args.workers, lambda m: None, problems)
+        n = add(pairs)
+        if pairs:
+            log(f"  포함 '{q}': {len(pairs)}행 → 새로 {n}개")
+    odd_start = [t for t, _ in rows if not (t[:1].isascii() and t[:1].isalpha())]
+    log(f"  a~z 로 시작하지 않는 용어 {len(odd_start)}개: {odd_start[:10]}")
 
-    # 3) 6판에 있었는데 안 잡힌 용어 재확인
-    old_rows, _ = base.load_csv(base.OUT_CSV)
-    got_terms = {t for t, _ in rows}
-    missing = sorted({t for t, _ in old_rows} - got_terms)
-    log(f"\n6판에 있었는데 아직 안 잡힌 용어 {len(missing)}개 재검색…")
-    rescued = 0
-    with ThreadPoolExecutor(max_workers=args.workers) as ex:
-        futs = {ex.submit(lambda q: base.parse_pairs_searchlist(fetch(mode.contains(q, 1))), t): t
-                for t in missing[:5000]}
-        for f in as_completed(futs):
-            try:
-                rescued += add(f.result())
-            except Exception as e:  # noqa: BLE001
-                log(f"  재검색 실패 '{futs[f]}': {e}")
-    still = sorted({t for t, _ in old_rows} - {t for t, _ in rows})
-    log(f"  재검색으로 {rescued}개 추가. 6.1판에서 없어진 것으로 보이는 용어 {len(still)}개")
+    # 3) 교차 확인: 받은 용어에서 무작위 3글자 조각을 뽑아 '포함 검색' → 목록 방식이 놓친 게 있는지
+    if args.audit:
+        import random
+        rng = random.Random(len(rows))
+        grams = set()
+        terms_list = [t for t, _ in rows]
+        while len(grams) < args.audit and terms_list:
+            t = rng.choice(terms_list).lower()
+            if len(t) >= 3:
+                i = rng.randrange(0, len(t) - 2)
+                g = t[i:i + 3]
+                if g.isalpha() and g.isascii():
+                    grams.add(g)
+        log(f"\n교차 확인: 무작위 3글자 포함 검색 {len(grams)}개…")
+        audit_missed = []
+        for g in sorted(grams):
+            pairs = crawl_listing(lambda p, q=g: mode.contains(q, p), "GET", f"검증 '{g}'",
+                                  args.workers, lambda m: None, problems)
+            for k in pairs:
+                if k not in seen:
+                    audit_missed.append((g, k))
+            add(pairs)
+        if audit_missed:
+            problems.add(f"교차 확인에서 목록 방식이 놓친 행 {len(audit_missed)}개 발견 (추가함): "
+                         f"{audit_missed[:10]}")
+        else:
+            log("  ✅ 교차 확인 결과 놓친 행 없음")
+
+    # 4) 이전 데이터와 비교: 이전에 있었는데 안 잡힌 용어는 그 용어로 다시 검색
+    ref_path = args.reference or base.OUT_CSV
+    old_rows, _ = base.load_csv(ref_path)
+    if not old_rows:
+        try:
+            url = "https://raw.githubusercontent.com/decaf-cpu/medical-terms/main/data/sources/kma.csv"
+            r = requests.get(url, timeout=60)
+            r.raise_for_status()
+            import csv as _csv
+            import io
+            rd = _csv.reader(io.StringIO(r.content.decode("utf-8-sig")))
+            next(rd, None)
+            old_rows = [(a, b) for a, b, *_ in rd]
+            ref_path = url
+        except Exception as e:  # noqa: BLE001
+            problems.add(f"비교 기준 데이터를 못 구함 ({e}) — 이전 대비 확인 생략")
+    if old_rows:
+        missing = sorted({t for t, _ in old_rows} - {t for t, _ in rows})
+        log(f"\n이전 데이터({os.path.basename(ref_path)})에 있었는데 안 잡힌 용어 {len(missing)}개 재검색…")
+        rescued = []
+        with ThreadPoolExecutor(max_workers=args.workers) as ex:
+            futs = {ex.submit(lambda q: base.parse_pairs_searchlist(fetch(mode.contains(q, 1))), t): t
+                    for t in missing}
+            for f in as_completed(futs):
+                try:
+                    for k in f.result():
+                        if k not in seen:
+                            rescued.append(k)
+                    add(f.result())
+                except Exception as e:  # noqa: BLE001
+                    problems.add(f"재검색 실패 '{futs[f]}': {e}")
+        if rescued:
+            problems.add(f"재검색으로 목록 방식이 놓친 행 {len(rescued)}개 발견 (추가함): {rescued[:10]}")
+        still = sorted({t for t, _ in old_rows} - {t for t, _ in rows})
+        log(f"  이번 판에서 없어진 것으로 보이는 용어 {len(still)}개: {still[:20]}")
+    else:
+        still = []
+
+    bad = leftover_markup(rows)
+    if bad:
+        problems.add(f"전처리 후에도 태그 조각이 남은 행 {len(bad)}개: {bad[:5]}")
 
     # 저장 (crawl_kma.py 와 같은 형식)
     with open(base.OUT_CSV, "w", encoding="utf-8-sig", newline="") as f:
@@ -211,12 +329,19 @@ def main():
         "edition": args.edition or "6.1판",
         "crawled": datetime.date.today().isoformat(),
         "sch_type1": t1, "sch_type2": t2, "type1_label": label,
-        "count": len(rows), "method": f"spelling a-z ({mode.method}) + digits + recheck",
+        "count": len(rows), "method": f"spelling a-z ({mode.method}) + digits/greek + audit + recheck",
         "not_found_from_previous": len(still),
+        "problems": problems.items,
     }
     with open(base.META_JSON, "w", encoding="utf-8") as f:
         json.dump(meta, f, ensure_ascii=False, indent=2)
     log(f"\n완료: {len(rows):,}개 → data/sources/kma.csv  ({(time.time() - started) / 60:.1f}분)")
+    if problems.items:
+        log(f"\n⚠️  확인이 필요한 항목 {len(problems.items)}개 (kma.meta.json 의 problems 에도 저장됨):")
+        for m in problems.items:
+            log(f"   - {m[:300]}")
+    else:
+        log("✅ 이상 징후 없음 (모든 목록 개수 일치, 교차 확인 통과, 태그 찌꺼기 없음)")
     return 0
 
 
