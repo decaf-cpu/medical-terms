@@ -64,13 +64,13 @@ text-align:center;
 
         .header p{
             font-size: 1.02rem;
-            color: var(--muted);
+            color: var(--text);
             opacity: 1;
         }
 
         .version-info{
             text-align:center;
-            color: var(--meta);
+            color: var(--text);
             font-size: 0.85rem;
             margin-top: 10px;
         }
