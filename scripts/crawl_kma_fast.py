@@ -90,15 +90,18 @@ class Mode:
             h = fetch(self.spelling(letter, 1), method)
             total = base.extract_total_count(h)
             pairs = base.parse_pairs_searchlist(h)
-            starts = pairs and all(t.lower().startswith(letter) for t, _ in pairs)
-            print(f"  [{method}] '{letter}' 첫 글자 목록: 총 {total}개, 1쪽 {len(pairs)}개, "
-                  f"모두 '{letter}'로 시작: {bool(starts)}  (포함 검색은 총 {contains_total}개)")
-            if starts and total is not None and (contains_total is None or total < contains_total):
-                # 2쪽도 같은 방식으로 넘어가는지 확인
+            odd = [t for t, _ in pairs if not t.lower().startswith(letter)]
+            print(f"  [{method}] '{letter}' 첫 글자 목록: 총 {total}개, 1쪽 {len(pairs)}개 "
+                  f"(포함 검색은 총 {contains_total}개)")
+            if odd:
+                print(f"     '{letter}'로 시작하지 않는 예: {odd[:5]}")
+            # 목록 방식이면 포함 검색보다 훨씬 적게 나옴. 첫 글자가 아닌 항목이 섞여도
+            # 빠지는 게 아니라 중복이 조금 생길 뿐이고, 마지막에 6판 대비 재검색으로 한 번 더 확인함.
+            if pairs and total is not None and contains_total and total < contains_total * 0.5:
                 if total > len(pairs):
                     p2 = base.parse_pairs_searchlist(fetch(self.spelling(letter, 2), method))
-                    ok2 = p2 and all(t.lower().startswith(letter) for t, _ in p2) and p2 != pairs
-                    print(f"  [{method}] 2쪽 확인: {bool(ok2)}")
+                    ok2 = bool(p2) and not (set(p2) & set(pairs))
+                    print(f"  [{method}] 2쪽 넘김 확인: {ok2}")
                     if not ok2:
                         continue
                 self.method = method
