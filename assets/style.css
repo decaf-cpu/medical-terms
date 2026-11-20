@@ -95,7 +95,7 @@ text-align:center;
 
         #searchInput{
             width: 100%;
-            padding: 14px 46px 14px 16px;
+            padding: 14px 84px 14px 16px;
             font-size: 1.05rem;
             border: 1px solid var(--gray-60);
             border-radius: 8px;
@@ -142,6 +142,36 @@ text-align:center;
             box-shadow: 0 0 0 3px rgba(36,107,235,0.18);
         }
         .search-icon svg{ display:block; }
+
+        /* 검색어 지우기(×) 버튼 — 입력값이 있을 때만 표시 */
+        .clear-btn{
+            position: absolute;
+            right: 48px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: var(--gray-5);
+            color: var(--meta);
+            cursor: pointer;
+            transition: background-color .12s, color .12s;
+        }
+        .clear-btn[hidden]{ display: none; }
+        .clear-btn:hover{
+            background: var(--primary-soft);
+            color: var(--primary-50);
+        }
+        .clear-btn:focus{
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(36,107,235,0.18);
+        }
+        .clear-btn svg{ display:block; }
+        html[data-theme="dark"] .clear-btn{ background: rgba(255,255,255,0.08); }
 
         .stats{
             display: flex;

@@ -327,7 +327,34 @@ if (!dataReady) return;
     }
 }
 
+        const clearBtn = document.getElementById('clearBtn');
+
+        function updateClearBtn() {
+            if (!clearBtn) return;
+            clearBtn.hidden = !document.getElementById('searchInput').value;
+        }
+
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            clearTimeout(searchTimeout);
+            input.value = '';
+            updateClearBtn();
+            performSearch('');
+            input.focus();
+        }
+
+        if (clearBtn) clearBtn.addEventListener('click', clearSearch);
+
+        // Esc 키로도 검색어 지우기
+        document.getElementById('searchInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && e.target.value) {
+                e.preventDefault();
+                clearSearch();
+            }
+        });
+
         document.getElementById('searchInput').addEventListener('input', (e) => {
+            updateClearBtn();
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 performSearch(e.target.value);
@@ -347,4 +374,5 @@ if (!dataReady) return;
         initTheme();
         const themeBtn = document.getElementById('themeToggle');
         if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+        updateClearBtn();
         loadTerms();
