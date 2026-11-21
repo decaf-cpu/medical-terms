@@ -1,57 +1,79 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; script-src 'self'; connect-src 'self';">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="대한의사협회 의학용어집 기반 의학용어 실시간 검색">
-    <title>의학용어 검색</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard-gov.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
-    <link rel="stylesheet" href="assets/style.css?v=20261120-1">
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'none'; object-src 'none'; form-action 'none'; img-src 'self' data:; style-src 'self' https://cdn.jsdelivr.net; font-src 'self' https://cdn.jsdelivr.net data:; script-src 'self'; connect-src 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="대한의사협회 의학용어집 기반 의학용어 실시간 검색">
+<title>의학용어 검색</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-gov-dynamic-subset.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="assets/style.css?v=20261121-1">
+<!-- 저장된 화면 설정을 그리기 전에 적용 (깜빡임 방지). CSP상 인라인 스크립트를 쓸 수 없어 작은 파일로 분리 -->
+<script src="assets/view-init.js?v=20261121-1"></script>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-                        <button id="themeToggle" class="icon-btn theme-toggle" type="button" aria-label="다크모드 전환" title="다크모드 전환">
-                <svg class="icon icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                    <path d="M21 14.5A8.5 8.5 0 0 1 9.5 3a7 7 0 1 0 11.5 11.5Z" fill="currentColor"/>
-                </svg>
-                <svg class="icon icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                    <path d="M12 18a6 6 0 1 0 0-12 6 6 0 0 0 0 12Zm0-16v2m0 16v2m10-10h-2M4 12H2m15.07-7.07-1.41 1.41M8.34 15.66l-1.41 1.41m10.14 0-1.41-1.41M8.34 8.34 6.93 6.93" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                </svg>
-            </button>
-<h1> 의학용어 검색</h1>
-            <p>용어 또는 뜻풀이로 검색하세요. 대소문자를 구분하지 않습니다.</p>
-            <div class="version-info" id="versionInfo">
-                데이터 불러오는 중…
-            </div>
-        </div>
-
-        <div class="search-box">
-            <div class="search-input-wrapper">
-                <input 
-                    type="text" 
-                    id="searchInput" 
-                    placeholder="검색어를 입력해 주세요."
-                    autofocus
-                >
-                <button id="clearBtn" class="clear-btn" type="button" aria-label="검색어 지우기" title="검색어 지우기" hidden><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
-                <button id="searchBtn" class="search-icon" type="button" aria-label="검색" title="검색"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.5-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
-            </div>
-            <div class="stats">
-                <span id="totalCount">&nbsp;</span>
-                <span id="resultCount"></span>
-            </div>
-        </div>
-
-        <div class="results" id="results">
-            <div class="no-results">
-                <div class="no-results-icon"></div>
-                <div>용어 데이터를 불러오는 중입니다…</div>
-            </div>
-        </div>
+<a class="skip" href="#main">본문 바로가기</a>
+<header class="top">
+  <div class="wrap top-inner">
+    <div>
+      <h1>의학용어 검색</h1>
+      <p class="sub" id="versionInfo">데이터 불러오는 중…</p>
     </div>
+    <div class="utility">
+      <div class="drop" id="settings">
+        <button type="button" class="util-btn" aria-expanded="false" aria-controls="settings-menu">화면 설정<i class="ico ico-arrow" aria-hidden="true"></i></button>
+        <div class="drop-menu" id="settings-menu" hidden>
+          <fieldset>
+            <legend>글자 크기</legend>
+            <div class="opts">
+              <label><input type="radio" name="scale" value="0.9"> 작게</label>
+              <label><input type="radio" name="scale" value="1" checked> 보통</label>
+              <label><input type="radio" name="scale" value="1.1"> 조금 크게</label>
+              <label><input type="radio" name="scale" value="1.3"> 크게</label>
+              <label><input type="radio" name="scale" value="1.5"> 가장 크게</label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>화면 모드</legend>
+            <div class="opts">
+              <label><input type="radio" name="mode" value="theme" checked> 기기 설정 따름</label>
+              <label><input type="radio" name="mode" value="light"> 기본</label>
+              <label><input type="radio" name="mode" value="high-contrast"> 선명한 화면</label>
+            </div>
+          </fieldset>
+          <button type="button" class="text-btn" id="settings-reset"><i class="ico ico-reset" aria-hidden="true"></i>초기화</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
 
-    <script src="assets/app.js?v=20261120-1" defer></script>
+<main class="wrap" id="main" tabindex="-1">
+  <div class="controls">
+    <!-- 검색어 입력 (KRDS 서비스 패턴: 검색어 입력) -->
+    <form class="search" role="search" id="searchForm">
+      <label for="searchInput" class="sr-only">의학용어 검색</label>
+      <div class="search-field">
+        <input id="searchInput" type="search" placeholder="영어 용어·한글 뜻풀이·약어로 검색 (예: fever, 복부, FUO)" data-short="용어·뜻풀이 검색 (예: fever)" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="search" maxlength="200" autofocus>
+        <button type="button" class="ico-btn clear" id="clearBtn" hidden><i class="ico ico-delete" aria-hidden="true"></i><span class="sr-only">검색어 지우기</span></button>
+        <button type="submit" class="ico-btn submit" id="searchBtn"><i class="ico ico-search" aria-hidden="true"></i><span class="sr-only">검색</span></button>
+      </div>
+    </form>
+    <p class="hint">대소문자는 구분하지 않습니다. 복사 버튼을 누르면 <b>한글(영어, 약어)</b> 형식으로 복사됩니다.</p>
+  </div>
+
+  <div class="result-bar">
+    <p class="total" id="resultCount" aria-live="polite" aria-atomic="true"></p>
+  </div>
+  <div id="results"><div class="loading" role="status"><span class="spinner" aria-hidden="true"></span>용어 데이터를 불러오는 중입니다.</div></div>
+</main>
+
+<footer class="wrap foot">
+  <p>대한의사협회 의학용어집과 대한예방의학회 의학용어집(<span class="badge">예방</span> 표시)을 바탕으로 만든 교육·연구용 검색 도구입니다.
+    용어 데이터의 저작권은 각 학회에 있으며, 공식 용어는 <a href="https://term.kma.org" target="_blank" rel="noopener">대한의사협회 의학용어검색<span class="sr-only"> (새 창)</span></a>에서 확인하세요.</p>
+</footer>
+<button type="button" class="go-top" id="goTop" hidden><i class="ico ico-top" aria-hidden="true"></i><span class="sr-only">맨 위로</span></button>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="assets/app.js?v=20261121-1" defer></script>
 </body>
 </html>
