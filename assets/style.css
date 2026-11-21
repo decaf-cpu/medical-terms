@@ -84,6 +84,13 @@ button, input, select { font: inherit; color: inherit; }
 }
 .ico-copy { --i: var(--i-copy); }
 
+/* 배지 색 (KRDS element-gray-light / text-subtle, element-secondary-lighter / text-secondary) */
+:root { --badge-gray-bg: #e6e8ea; --badge-gray-ink: #464c53; --badge-sec-bg: #eef2f7; --badge-sec-ink: #052b57; }
+:root[data-mode="high-contrast"] { --badge-gray-bg: #1e2124; --badge-gray-ink: #cdd1d5; --badge-sec-bg: #091f25; --badge-sec-ink: #abd8e3; }
+@media (prefers-color-scheme: dark) {
+  :root[data-mode="theme"] { --badge-gray-bg: #1e2124; --badge-gray-ink: #cdd1d5; --badge-sec-bg: #091f25; --badge-sec-ink: #abd8e3; }
+}
+
 /* ── 헤더 ── */
 .top { background: var(--panel); border-bottom: 1px solid var(--line); }
 .top-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.6rem; padding-top: 1.6rem; padding-bottom: 1.6rem; }
@@ -145,12 +152,15 @@ h1 { font-size: 2.4rem; margin: 0; font-weight: 700; }
 .term { margin: 0; font-size: 1.9rem; font-weight: 700; color: var(--ink); line-height: 1.4; display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; }
 .term .en { overflow-wrap: anywhere; }
 .ko { grid-column: 1; margin: 0; font-size: 1.7rem; color: var(--ink); }
-.extra { grid-column: 1; display: grid; grid-template-columns: auto 1fr; gap: 0.2rem 1.2rem; margin: 0.4rem 0 0; font-size: 1.5rem; }
-.extra dt { color: var(--ink-3); white-space: nowrap; }
-.extra dd { margin: 0; color: var(--ink-2); }
+/* 뜻풀이 항목(동의어·약어·원어·복수형·단수형·각주) = 항목 이름표 (KRDS badge bg-light-gray: 24px, radius 0.4rem)
+   ※ 완전히 둥근 모양은 KRDS에서 누르거나 지울 수 있는 태그·숫자 배지용이라 쓰지 않음 */
+.extra { grid-column: 1; display: grid; grid-template-columns: auto 1fr; align-items: start; gap: 0.6rem 1rem; margin: 0.8rem 0 0; font-size: 1.5rem; }
+.extra dt { justify-self: start; display: inline-flex; align-items: center; height: 2.4rem; padding: 0 0.8rem; border-radius: var(--r-badge); background: var(--badge-gray-bg); color: var(--badge-gray-ink); font-size: 1.5rem; white-space: nowrap; }
+.extra dd { margin: 0; color: var(--ink-2); line-height: 2.4rem; }
 mark { background: var(--mark); color: inherit; border-radius: 0.2rem; padding: 0 0.1rem; }
 /* 분야 표시 = 배지 (KRDS badge: 24px, radius 0.4rem) */
-.badge { display: inline-flex; align-items: center; height: 2.4rem; padding: 0 0.8rem; border-radius: var(--r-badge); font-size: 1.3rem; font-weight: 400; color: var(--ink-2); background: var(--bg); border: 1px solid var(--line); vertical-align: 0.1rem; }
+/* 분야 표시(예방·영양·한국 등) = KRDS badge bg-light-secondary — 항목 이름표(회색)와 색으로 구분 */
+.badge { display: inline-flex; align-items: center; height: 2.4rem; padding: 0 0.8rem; border-radius: var(--r-badge); font-size: 1.5rem; font-weight: 400; color: var(--badge-sec-ink); background: var(--badge-sec-bg); vertical-align: 0.1rem; }
 /* 복사 = 아이콘 텍스트 버튼 (KRDS 버튼 xsmall: 32px, radius 0.4rem) */
 .copy-btn { grid-column: 2; grid-row: 1 / span 3; align-self: start; display: inline-flex; align-items: center; gap: 0.4rem; height: 3.2rem; padding: 0 1rem 0 0.8rem; border: 1px solid var(--line-2); background: var(--panel); border-radius: var(--r-badge); font-size: 1.5rem; color: var(--ink); cursor: pointer; }
 .copy-btn .ico { width: 1.8rem; height: 1.8rem; color: var(--ink-2); }
@@ -184,7 +194,7 @@ mark { background: var(--mark); color: inherit; border-radius: 0.2rem; padding: 
 #toast:empty { display: none; }
 
 .foot { color: var(--ink-2); font-size: 1.5rem; padding-top: 4rem; padding-bottom: 6.4rem; }
-.foot .badge { height: 2rem; padding: 0 0.6rem; }
+.foot .badge { height: 2.2rem; padding: 0 0.6rem; font-size: 1.3rem; }
 
 /* 클립보드 대체 복사용 */
 .copy-ta-hidden { position: fixed; opacity: 0; pointer-events: none; left: -9999px; top: 0; }
